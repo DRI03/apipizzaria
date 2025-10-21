@@ -1,28 +1,69 @@
 // atualizar o index.jx
 
-//1.importa a ferramenta Express
+//1.Primeira linha do seu projeto. Carrega as váriaveis de ambiente antes de qualquer outro código
 
-import express from 'express'
+import 'dotenv/config';
 
-// 2. Cria a nossa explicação (nosso servidor)
+// Sintaxe de importação para todas as depêndencias
+
+import express from 'express';
+import helmet from 'helmet';
+import morgan from 'morgan';
+import cors from 'cors';
+import path from 'path';
+import {fileURLToPath} from 'url'; //necessário para recriar o '_dirname'.
+import db from './db/db.js'; // excluir depois
+
+// --- CONFIGURAÇÕES ---
+
+const _filename = fileURLToPath(import.meta.url);
+const _dirname = path.dirname(_filename);
+const corsOptions={ 
+origin: ['http://locahost:3333','https://meudominio.com'],
+methods: 'GET,POST,PUT,PATCH,DELETE',
+credentials: true,
+
+};
+// -- INICIALIZAÇÃO DO APP -- 
 
 const app = express();
 
-//habilita o Express para entender o formato JSON no corpo das requisições
-app.use(express.json());
+// --  MODDLEWARES -- 
 
+app.use(helmet());
+app.use(cors(corsOptions));
+app.use(morgan('dev'));
+app.use(express.json()); 
 
-// 3. Define a porta em que o servidor vai "executar" os pedidos
+// servindo pasta 'public' para arquivos (css, jv, imagens)
 
- const PORTA = 3333;
+app.use(express.static(path.join(_dirname, "..", 'public')));
 
- // 4. Manda o servidor ficar "executando" na porta  definida
+// -- ROTAS -- 
+//ROTA PRINCIPAL
+ app.get('/',(req,resp)=>
+  resp.sendFile(path.join(_dirname, '..','pages', 'html'))
+ 
+ );
+// -- TRATAMENDO DE ERRO -- 
+// Um middleware de erro centralizado
+app.use(( err,req,resp, next)=>{
+ console.error(err.stack);
+
+ resp.status(500).send('Algo deu errado no servidor!');
+
+});
+
+ // -- INICIALIZAÇÃO DO SERVIDOR --
+
+ const PORTA = process.env.PORT || 3333;
  app.listen(PORTA,() => {
 
 console.log(`O servidor rodando na porta ${PORTA}. Acesse http:///localhost:
 ${ PORTA}`)
 
  })
+
 
  // rota principal de aplicação
  app.get('/',(request,response)=> {
@@ -40,14 +81,10 @@ ${ PORTA}`)
  const listaDeClientes= [
  { id: 1, nome: "João Silva", email: "joao.silva@example.com"},
  { id: 2, nome: "Maria Santos", email: "maria.santos@example.com" },
- { id: 3, nome: "Pedro Almeida",email: " pedro.almeida@example.com" }
+
  ]
 
- // Rota para listar TODOS os clientes ( seu código original)
 
- app.get('/clientes',(req,resp) => {
- resp.json(listaDeClientes);
- })
 
 
  app.get('/cliente/:id',(req,resp) =>{
@@ -82,7 +119,7 @@ app.post('/cliente',(req,resp)=> {
 
 const novoCliente = req.body;
 
-console.log(" Recebemos um novo cliente", novoCliente );
+console.log(" Criamos um novo cliente", novoCliente );
 
 resp.json({message: `Cliente ${novoCLiente} cadastrado com sucesso!!`,
 data: novoCliente });
@@ -90,4 +127,3 @@ data: novoCliente });
 })
 
 
- 

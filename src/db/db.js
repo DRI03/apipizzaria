@@ -1,0 +1,33 @@
+import mysql from 'mysql2/promise';
+
+// criação de pool de conexões
+
+const db = mysql.createPool({
+ host: process.env. DB_HOST,
+ port: process.env.DB_PORT,
+ user: process.env.DB_USER,
+ password: process.env.DB_PASSWORD,
+ database: process.env.DB_NAME
+
+});
+
+// Função de teste de conexão auto-executavel
+
+(async()=>{
+ try{
+    const conection = await db.getConnection();
+    console.log('Conexão com o banco de dados estabelecidos com sucesso!');
+    conection.release(); //Libera a conexão de volta para o pool
+
+} catch (error){
+console.error('Erro ao conectar ao banco de dados',error);
+
+}
+
+})();
+
+// Usando o ''export defaut'' para exportar a instância de pool de conexões
+
+export default db;
+
+
